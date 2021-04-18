@@ -7,7 +7,7 @@ class ExchangeForm extends Component {
     toCurrency: 'PLN',
     result: 0,
     currencies: [],
-    ratio: 1,
+    ratio: 0,
   };
 
   fetchUrl = `https://api.nbp.pl/api/exchangerates/tables/a/last/`;
@@ -34,19 +34,19 @@ class ExchangeForm extends Component {
   handleSelectCurrency = (e) => {
     this.setState({
       fromCurrency: e.target.value,
+      ratio: 0,
     });
   };
 
   handleConvertExchange = (e) => {
+    const { currencies, amount, fromCurrency } = this.state;
     e.preventDefault();
 
-    const ratio = this.state.currencies.find(
-      (elem) => elem.code === this.state.fromCurrency,
-    );
+    const ratio = currencies.find((elem) => elem.code === fromCurrency);
 
     this.setState({
-      result: this.state.amount * ratio.mid,
-      amount: 0,
+      result: amount * ratio.mid,
+      ratio: ratio.mid,
     });
   };
 
@@ -73,7 +73,7 @@ class ExchangeForm extends Component {
                 <option key={curr.index}>{curr.code}</option>
               ))}
             </select>
-            {this.state.fromCurrency ? (
+            {this.state.amount >= 0 ? (
               <button
                 id="btnCount"
                 type="submit"
@@ -81,14 +81,16 @@ class ExchangeForm extends Component {
               >
                 Count
               </button>
-            ) : null}
+            ) : (
+              `Value shouldn't be negative!`
+            )}
           </form>
         </div>
-        <div className="output">
-          <div className="rate">-</div>
-          <div className="exchangeResult">{this.state.result.toFixed(2)}</div>
-          <p>PLN</p>
-        </div>
+        <ExchangeResultPanel
+          result={this.state.result}
+          ratio={this.state.ratio}
+          currency={this.state.fromCurrency}
+        />
       </>
     );
   }
