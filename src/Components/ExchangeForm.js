@@ -2,11 +2,12 @@ import React, { Component } from 'react';
 import ExchangeResultPanel from './ExchangeResultPanel';
 class ExchangeForm extends Component {
   state = {
-    amount: 0,
-    fromCurrency: '',
+    amount: '',
+    fromCurrency: 'EUR',
     toCurrency: 'PLN',
-    currencies: [],
     result: 0,
+    currencies: [],
+    ratio: 1,
   };
 
   fetchUrl = `https://api.nbp.pl/api/exchangerates/tables/a/last/`;
@@ -26,10 +27,28 @@ class ExchangeForm extends Component {
           }));
         }
         this.setState({ currencies: currencyMap });
-        console.log(currencyMap);
       })
       .catch((err) => console.log(err));
   }
+
+  handleSelectCurrency = (e) => {
+    this.setState({
+      fromCurrency: e.target.value,
+    });
+  };
+
+  handleConvertExchange = (e) => {
+    e.preventDefault();
+
+    const ratio = this.state.currencies.find(
+      (elem) => elem.code === this.state.fromCurrency,
+    );
+
+    this.setState({
+      result: this.state.amount * ratio.mid,
+      amount: 0,
+    });
+  };
 
   render() {
     return (
@@ -54,12 +73,22 @@ class ExchangeForm extends Component {
                 <option key={curr.index}>{curr.code}</option>
               ))}
             </select>
-            <button id="btnCount" type="submit">
-              Count
-            </button>
+            {this.state.fromCurrency ? (
+              <button
+                id="btnCount"
+                type="submit"
+                onClick={this.handleConvertExchange}
+              >
+                Count
+              </button>
+            ) : null}
           </form>
         </div>
-        <ExchangeResultPanel />
+        <div className="output">
+          <div className="rate">-</div>
+          <div className="exchangeResult">{this.state.result.toFixed(2)}</div>
+          <p>PLN</p>
+        </div>
       </>
     );
   }
